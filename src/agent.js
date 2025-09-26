@@ -80,7 +80,7 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
   } catch (error) {
     console.error("AGENT: An error occurred:", error.message);
   }
-<<<<<<< Updated upstream
+
 }
 
 // // --- 3. CLI Support in ESM ---
@@ -97,6 +97,4 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
 //     .then((result) => console.log(result))
 //     .catch((err) => console.error("Error:", err.message));
 // }
-=======
-}
->>>>>>> Stashed changes
+

@@ -44,7 +44,7 @@ export const findNearbyPlaces = tool(
     name: "findNearbyPlaces",
     description: "Finds points of interest (like events or parks) near a specific geographic coordinate.",
     schema: z.object({
-<<<<<<< Updated upstream
+
       keyword: z.string().optional().default("event").describe("A keyword to search for, e.g., 'event' or 'restaurant'."),
       latitude: z.union([z.string(), z.number()])
         .transform(val => Number(val))
@@ -53,7 +53,7 @@ export const findNearbyPlaces = tool(
         .transform(val => Number(val))
         .describe("The longitude of the central point."),
       radius: z.number().optional().default(5000).describe("The search radius in meters."),
-=======
+
       latitude: z.union([z.string(), z.number()]).optional()
         .transform(val => (val !== undefined ? Number(val) : undefined))
         .describe("The latitude of the location to search around."),
@@ -62,7 +62,7 @@ export const findNearbyPlaces = tool(
         .describe("The longitude of the location to search around."),
       keyword: z.string().optional().describe("A keyword to search for, e.g., 'concert'."),
       radius: z.number().optional().describe("The search radius in meters."),
->>>>>>> Stashed changes
+
     }),
   }
 );
