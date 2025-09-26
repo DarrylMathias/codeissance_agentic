@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+<<<<<<< HEAD
   "type": "module",
+=======
+>>>>>>> c6b5ebad83412374cb1e443d2c760bd6625be2a0
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,6 +16,11 @@
   "dependencies": {
     "@langchain/core": "^0.3.77",
     "@langchain/ollama": "^0.2.4",
+<<<<<<< HEAD
     "axios": "^1.12.2"
+=======
+    "axios": "^1.12.2",
+    "dotenv": "^17.2.2"
+>>>>>>> c6b5ebad83412374cb1e443d2c760bd6625be2a0
   }
 }
