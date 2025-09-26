@@ -6,13 +6,13 @@ import { config } from "dotenv";
 config(); // Load environment variables
 
 export const getCurrentWeather = tool(
-  async () => {
+  async ({city}) => {
     const apiKey = process.env.OPENWEATHER_API_KEY;
     if (!apiKey) {
       return "Error: OpenWeatherMap API key is missing. Please set OPENWEATHER_API_KEY in your .env file.";
     }
-
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=Mumbai&appid=${apiKey}&units=metric`;
+    const defaultCity = "Mumbai"; // Default to Mumbai if no city is provided
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${defaultCity}&appid=${apiKey}&units=metric`;
 
     try {
       console.log(`TOOL (Weather): Getting live weather for ${city}...`);

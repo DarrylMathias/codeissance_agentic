@@ -7,6 +7,12 @@ config();
 
 export const findNearbyPlaces = tool(
   async ({ latitude, longitude, keyword = "event", radius = 5000 }) => {
+    // This check happens AFTER the schema validation passes.
+    if (latitude === undefined || longitude === undefined) {
+      // This helpful error is sent back to the LLM, teaching it how to fix its mistake.
+      return "Error: Tool call failed because 'latitude' and 'longitude' are missing. You MUST provide both coordinates to use this tool.";
+    }
+
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       return "Error: Google Maps API key is missing.";
@@ -23,7 +29,6 @@ export const findNearbyPlaces = tool(
         return `No places found matching '${keyword}' near the specified location.`;
       }
 
-      // Extract and simplify the most relevant info for the top 5 results
       const simplifiedPlaces = places.slice(0, 5).map(p => ({
         name: p.name,
         types: p.types,
@@ -37,12 +42,16 @@ export const findNearbyPlaces = tool(
   },
   {
     name: "findNearbyPlaces",
-    description: "Finds points of interest (like events, restaurants, or parks) near a specific geographic coordinate (latitude and longitude).",
+    description: "Finds points of interest (like events or parks) near a specific geographic coordinate.",
     schema: z.object({
-      latitude: z.number().describe("The latitude of the location to search around."),
-      longitude: z.number().describe("The longitude of the location to search around."),
-      keyword: z.string().optional().describe("A keyword to search for, e.g., 'concert', 'festival', 'park'. Defaults to 'event'."),
-      radius: z.number().optional().describe("The search radius in meters. Defaults to 5000."),
+      latitude: z.union([z.string(), z.number()]).optional()
+        .transform(val => (val !== undefined ? Number(val) : undefined))
+        .describe("The latitude of the location to search around."),
+      longitude: z.union([z.string(), z.number()]).optional()
+        .transform(val => (val !== undefined ? Number(val) : undefined))
+        .describe("The longitude of the location to search around."),
+      keyword: z.string().optional().describe("A keyword to search for, e.g., 'concert'."),
+      radius: z.number().optional().describe("The search radius in meters."),
     }),
   }
 );

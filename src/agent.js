@@ -16,7 +16,11 @@ const llmWithTools = llm.bindTools(allTools);
 const toolMap = Object.fromEntries(allTools.map((tool) => [tool.name, tool]));
 
 // --- 2. Main Agent Logic ---
-export default async function runMultiToolAgent(prompt) {
+export default async function runMultiToolAgent(prompt, latitude, longitude) {
+  const fullPrompt = latitude && longitude
+    ? `${prompt}\n\n(Context: The user's current location is latitude: ${latitude}, longitude: ${longitude})`
+    : prompt;
+  console.log(fullPrompt);
   const messages = [
     new SystemMessage(
       `You are CityPulse, a hyper-local, real-time AI city guide for Mumbai. Your goal is to act as a personal city concierge.
@@ -42,7 +46,7 @@ export default async function runMultiToolAgent(prompt) {
       **Part 2: Data Sources and Reasoning**
       After the answer, add a horizontal separator ('---'). Then, add the heading "Data Sources and Reasoning". Under this heading, you must provide a detailed, point-by-point breakdown of which tools you used and the key data you extracted from each one. This section is for transparency and must only appear at the very end of your response.`
     ),
-    new HumanMessage(prompt),
+    new HumanMessage(fullPrompt),
   ];
 
   console.log("AGENT: Starting with user request...");

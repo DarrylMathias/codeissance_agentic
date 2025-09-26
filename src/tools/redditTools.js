@@ -29,7 +29,6 @@ export const getRedditPosts = tool(
         text: post.data.selftext,
         url: `https://reddit.com${post.data.permalink}`,
       }));
-
       return JSON.stringify(posts, null, 2);
     } catch (error) {
       return `Failed to fetch Reddit posts from r/${targetSubreddit}. The subreddit may not exist or there was a network error.`;
