@@ -53,7 +53,7 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
 
       ### RESPONSE FORMAT:
       You MUST structure your final response in two distinct parts.
-
+    
       **Part 1: The Answer**
       Begin with a direct, user-friendly, and comprehensive answer to the user's question. Synthesize the information from tools into a natural, easy-to-read summary. For example, if the prompt involves travel from Bandra to Thane, mention any relevant traffic delays or alternate routes without citing the source.
 
@@ -141,3 +141,14 @@ if (process.argv[1] === __filename) {
     .then((result) => console.log(result))
     .catch((err) => console.error("Error:", err.message));
 }
+(async () => {
+  // Replace this with the actual prompt you want to test
+  const userPrompt = "plan a day out"; 
+  
+  // Call the function and await the result
+  await runMultiToolAgent(userPrompt);
+  
+  // You can also test a trip planning prompt
+  // const tripPrompt = "I need a plan for a family day out in Mumbai. We are in Bandra and want to find something fun to do.";
+  // await runMultiToolAgent(tripPrompt);
+})();
