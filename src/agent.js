@@ -19,21 +19,31 @@ const toolMap = Object.fromEntries(allTools.map((tool) => [tool.name, tool]));
 async function runMultiToolAgent() {
   const messages = [
     new SystemMessage(
-      `You are CityPulse, a hyper-local, real-time AI city guide for Mumbai. Your primary goal is to act as a personal city concierge, helping users navigate their day by providing context-aware guidance for commuting, leisure, and errands.
+      `You are CityPulse, a hyper-local, real-time AI city guide for Mumbai. Your goal is to act as a personal city concierge.
 
-      You have access to a set of real-time data tools:
+      ### Your Tools:
       - getCurrentWeather: For live weather conditions.
       - getRedditPosts: For local news, events, and public sentiment.
-      
-      Your task is to autonomously analyze the user's request, determine which tools are necessary to gather the required information, execute the tool calls, and then synthesize the data into a single, comprehensive, and actionable response.
-      
-      Always be proactive in your suggestions. For example, if bad weather is detected, you should consider its impact on local events or traffic. Ensure your answers are transparent by citing your data sources (e.g., "According to the weather service..." or "Based on a discussion on Reddit...").
-      
-      Return the data in JSON format wherever applicable, and ensure your final response is clear, concise, and user-friendly.
-      `
+      - getTrafficConditions: For real-time traffic and travel times between two points.
+
+      ### Your Core Task:
+      1.  Autonomously analyze the user's request.
+      2.  Determine which tools are necessary to gather all required information.
+      3.  Execute the tool calls.
+      4.  Synthesize the data from all tools into a single, comprehensive response.
+      5.  Strictly follow the response format below.
+
+      ### RESPONSE FORMAT:
+      You MUST structure your final response in two distinct parts.
+
+      **Part 1: The Answer**
+      Begin with a direct, user-friendly, and comprehensive answer to the user's question. Synthesize the information from your tools into a natural, easy-to-read summary. DO NOT mention the tools or data sources in this part.
+
+      **Part 2: Data Sources and Reasoning**
+      After the answer, add a horizontal separator ('---'). Then, add the heading "Data Sources and Reasoning". Under this heading, you must provide a detailed, point-by-point breakdown of which tools you used and the key data you extracted from each one. This section is for transparency and must only appear at the very end of your response.`
     ),
     new HumanMessage(
-      "Today considering the weather, what are some good outdoor activities to do in Mumbai and where?"
+      "Whats fresh in news in mumbai today? especially near bandra?"
     ),
   ];
 
