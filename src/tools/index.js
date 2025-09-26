@@ -1,9 +1,9 @@
 // tools/index.js
 import { getRedditPosts } from "./redditTools.js";
-// import { getCurrentWeather } from "./weatherTool.js";
+import { getCurrentWeather } from "./weatherTool.js";
 
 // This array contains every tool the agent has access to.
 // To add a new tool, just import it and add it to this list.
-export const allTools = [getRedditPosts, 
-    // getCurrentWeather
+export const allTools = [getRedditPosts,
+    getCurrentWeather
 ];

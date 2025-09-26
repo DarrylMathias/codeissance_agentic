@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@langchain/core": "^0.3.77",
-    "@langchain/ollama": "^0.2.4"
+    "@langchain/ollama": "^0.2.4",
+    "axios": "^1.12.2",
+    "dotenv": "^17.2.2"
   }
 }
