@@ -4,6 +4,7 @@ import { getCurrentWeather } from "./weatherTool.js";
 import { getTrafficConditions } from "./trafficTools.js";
 import { findNearbyPlaces } from "./locationTool.js";
 import { findRouteAttractionTool } from "./attraction.js";
+import { getPlacesAlongRoute } from "./mapsPlacesTools.js";
 
 // Aggregate all tools here
 export const allTools = [
@@ -12,4 +13,5 @@ export const allTools = [
   getTrafficConditions,
   findNearbyPlaces,
   findRouteAttractionTool,
+  getPlacesAlongRoute
 ];

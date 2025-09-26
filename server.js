@@ -18,16 +18,17 @@ app.use(cors());
 
 // General citypulse endpoint
 app.post("/api/citypulse", async (req, res) => {
-  const { prompt, latitude, longitude } = req.body;
+  const { prompt, startLat, startLong, endLat, endLang } = req.body;
   console.log(`SERVER: Prompt: "${prompt}"`);
-  console.log(`SERVER: Location: Latitude=${latitude}, Longitude=${longitude}`);
+  console.log(`SERVER: Origin Location: Latitude=${startLat}, Longitude=${startLong}`);
+  console.log(`SERVER: End Location: Latitude=${endLat}, Longitude=${endLang}`);
 
-  if (!prompt && !latitude && !longitude) {
+  if (!prompt && !startLat && !startLong && !endLat && !endLang) {
     return res.status(400).json({ error: "The 'prompt', 'latitude', and 'longitude' fields are required." });
   }
 
   try {
-    const agentResponse = await runMultiToolAgent(prompt, latitude, longitude);
+    const agentResponse = await runMultiToolAgent(prompt, startLat, startLong, endLat, endLang);
     res.status(200).json({ response: agentResponse });
   } catch (error) {
     console.error("API Error:", error);

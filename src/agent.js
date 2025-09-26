@@ -17,7 +17,7 @@ const llmWithTools = llm.bindTools(allTools);
 const toolMap = Object.fromEntries(allTools.map((tool) => [tool.name, tool]));
 
 // --- 2. Main Agent Function ---
-export default async function runMultiToolAgent(prompt, latitude, longitude) {
+export default async function runMultiToolAgent(prompt, startLat, startLong, endLat, endLang) {
   if (!prompt) {
     throw new Error("A prompt must be provided.");
   }
@@ -26,14 +26,45 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
   let toolCallOverride = null;
 
   // Add location context
-  if (latitude && longitude) {
-    fullPrompt = `${prompt}\n\n(Context: The user's current location is latitude: ${latitude}, longitude: ${longitude})`;
+  const hasOrigin = typeof startLat !== "undefined" && typeof startLong !== "undefined" && !isNaN(Number(startLat)) && !isNaN(Number(startLong));
+  const hasDestination = typeof endLat !== "undefined" && typeof endLang !== "undefined" && !isNaN(Number(endLat)) && !isNaN(Number(endLang));
 
-    // Force tool calls for nearby places if prompt mentions restaurants/food
-    if (/places? near me|nearby places|good places|restaurant|dinner|cafe|food/i.test(prompt)) {
+  if (hasOrigin || hasDestination) {
+    let contextStr = "";
+    if (hasOrigin) contextStr += `(Origin: latitude: ${startLat}, longitude: ${startLong})`;
+    if (hasDestination) contextStr += `${hasOrigin ? ", " : ""}(Destination: latitude: ${endLat}, longitude: ${endLang})`;
+    fullPrompt = `${prompt}\n\n(Context: ${contextStr})`;
+
+    // Prefer getPlacesAlongRoute for 'along the way' queries if at least one location is present
+    if (/\b(along the way|on the way|en route|route|between|from .* to .*)\b/i.test(prompt) &&
+      /(petrol pump|gas station|restaurant|food|cafe|places?|stop|break|eat|dinner|lunch|breakfast)/i.test(prompt)) {
+      if (hasOrigin && hasDestination) {
+        toolCallOverride = {
+          toolName: "getPlacesAlongRoute",
+          args: {
+            startLat: Number(startLat),
+            startLong: Number(startLong),
+            endLat: Number(endLat),
+            endLong: Number(endLang),
+            keyword: "petrol pump"
+          },
+        };
+      } else {
+        // If only one location is present, fallback to nearby places
+        const lat = hasOrigin ? Number(startLat) : Number(endLat);
+        const long = hasOrigin ? Number(startLong) : Number(endLang);
+        toolCallOverride = {
+          toolName: "findNearbyPlaces",
+          args: { latitude: lat, longitude: long },
+        };
+      }
+    } else if (/places? near me|nearby places|good places|restaurant|dinner|cafe|food/i.test(prompt)) {
+      // Fallback to nearby places if not 'along the way'
+      const lat = hasOrigin ? Number(startLat) : Number(endLat);
+      const long = hasOrigin ? Number(startLong) : Number(endLang);
       toolCallOverride = {
         toolName: "findNearbyPlaces",
-        args: { latitude: Number(latitude), longitude: Number(longitude) },
+        args: { latitude: lat, longitude: long },
       };
     }
 
@@ -44,6 +75,10 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
         args: { keyword: "popular attraction" },
       };
     }
+  } else if (/\b(along the way|on the way|en route|route|between|from .* to .*)\b/i.test(prompt) &&
+    /(petrol pump|gas station|restaurant|food|cafe|places?|stop|break|eat|dinner|lunch|breakfast)/i.test(prompt)) {
+    // If neither location is present, but prompt is about 'along the way', return error early
+    return "Error: Please provide both origin and destination coordinates to find places along the way.";
   }
 
   console.log("AGENT: Full prompt being sent to LLM:");
@@ -52,7 +87,7 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
   const messages = [
     new SystemMessage(
       `You are CityPulse, a hyper-local AI city guide for Mumbai. 
-      Your tools: getCurrentWeather, getRedditPosts, getTrafficConditions, findNearbyPlaces, findRouteAttractionTool.
+      Your tools: getCurrentWeather, getRedditPosts, getTrafficConditions, findNearbyPlaces, findRouteAttractionTool, getPlacesAlongRoute.
       Provide detailed itinerary-style answers for trips, restaurants, and attractions.`
     ),
     new HumanMessage(fullPrompt),
