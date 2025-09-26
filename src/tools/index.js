@@ -14,5 +14,5 @@ export const allTools = [
   getTrafficConditions,
   findNearbyPlaces,
   findRouteAttractionTool
-  // getTwitterAlerts
+  
 ];

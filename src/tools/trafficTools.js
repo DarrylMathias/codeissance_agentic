@@ -1,71 +1,52 @@
-// tools/trafficTool.js
-import { tool } from "@langchain/core/tools";
-import { z } from "zod";
+// agents/tools/trafficTools.js
 import axios from "axios";
-import { config } from "dotenv";
-config();
 
-export const getTrafficConditions = tool(
-  async (input) => {
-    // Accept both origin/destination as strings and startLat/startLng/endLat/endLng as numbers/strings
-    let origin, destination;
-    if (input.origin && input.destination) {
-      origin = input.origin;
-      destination = input.destination;
-    } else if (
-      (input.startLat !== undefined && input.startLng !== undefined &&
-        input.endLat !== undefined && input.endLng !== undefined)
-    ) {
-      origin = `${input.startLat},${input.startLng}`;
-      destination = `${input.endLat},${input.endLng}`;
-    } else {
-      return "Error: Provide either {origin, destination} as strings or {startLat, startLng, endLat, endLng} as numbers.";
-    }
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      return "Error: Google Maps API key is missing. Please set GOOGLE_MAPS_API_KEY in your .env file.";
-    }
-    if (!origin || !destination || typeof origin !== "string" || typeof destination !== "string" || origin.trim() === "" || destination.trim() === "") {
-      return "Error: Both 'origin' and 'destination' must be non-empty strings in the format 'latitude,longitude'.";
-    }
-
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&key=${apiKey}&departure_time=now`;
-
+export const getTrafficConditions = {
+  name: "getTrafficConditions",
+  description: "Fetch route distance, duration, and traffic conditions using Google Maps Directions API",
+  async invoke({ origin, destination }) {
     try {
-      console.log(`TOOL (Traffic): Getting live traffic from '${origin}' to '${destination}'...`);
-      console.log(`TOOL (Traffic): Fetching URL: ${url}`);
-      const response = await axios.get(url);
-      const route = response.data.routes[0];
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      if (!apiKey) throw new Error("Missing Google Maps API key");
 
-      if (!route) {
-        return `Error: Could not find a route between ${origin} and ${destination}.`;
+      // Encode the coordinates properly for URL
+      const encodedOrigin = encodeURIComponent(origin);
+      const encodedDestination = encodeURIComponent(destination);
+      
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodedOrigin}&destination=${encodedDestination}&departure_time=now&traffic_model=best_guess&key=${apiKey}`;
+
+      console.log("🌐 API URL:", url.replace(apiKey, "***API_KEY***")); // Log URL without exposing API key
+
+      const response = await axios.get(url);
+      
+      // Enhanced error handling
+      if (response.data.status !== 'OK') {
+        console.error("❌ API Error Status:", response.data.status);
+        console.error("❌ API Error Message:", response.data.error_message);
+        return `API Error: ${response.data.status} - ${response.data.error_message || 'Unknown error'}`;
       }
 
-      const leg = route.legs[0];
-      const trafficInfo = {
-        origin: leg.start_address,
-        destination: leg.end_address,
-        distance: leg.distance.text,
-        duration_without_traffic: leg.duration.text,
-        duration_with_traffic: leg.duration_in_traffic.text,
-      };
+      if (!response.data.routes || response.data.routes.length === 0) {
+        return "No routes found between the specified locations.";
+      }
 
-      return JSON.stringify(trafficInfo, null, 2);
+      const route = response.data.routes[0];
+      const leg = route.legs[0];
+      
+      return {
+        distance: leg.distance.text,
+        duration: leg.duration.text,
+        durationInTraffic: leg.duration_in_traffic?.text || leg.duration.text,
+        summary: route.summary,
+        status: 'success'
+      };
     } catch (error) {
-      console.error("TOOL (Traffic) fetch failed:", error);
-      return `Error: Failed to fetch traffic data. URL: ${url} Details: ${error.message}`;
+      console.error("❌ Error in getTrafficConditions:", error.message);
+      if (error.response) {
+        console.error("❌ Response status:", error.response.status);
+        console.error("❌ Response data:", error.response.data);
+      }
+      return `Error fetching traffic data: ${error.message}`;
     }
-  },
-  {
-    name: "getTrafficConditions",
-    description: "Calculates the real-time travel time and traffic delay between two specific points in Mumbai using Google Maps. Use this to answer any questions about traffic.",
-    schema: z.object({
-      origin: z.string().optional().describe("The starting point as 'lat,lng' string."),
-      destination: z.string().optional().describe("The ending point as 'lat,lng' string."),
-      startLat: z.union([z.string(), z.number()]).optional().describe("The latitude of the starting point."),
-      startLng: z.union([z.string(), z.number()]).optional().describe("The longitude of the starting point."),
-      endLat: z.union([z.string(), z.number()]).optional().describe("The latitude of the ending point."),
-      endLng: z.union([z.string(), z.number()]).optional().describe("The longitude of the ending point."),
-    }),
   }
-);
+};

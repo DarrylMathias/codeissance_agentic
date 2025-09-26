@@ -1,7 +1,10 @@
-// server.js
+import { config } from "dotenv";
+config();
+
 import express from "express";
-import runMultiToolAgent from "./src/agent.js"; // Import the agent function
+import runMultiToolAgent from "./src/agent.js";
 import runExpertPlanner from "./src/routePlannerAgents.js";
+
 
 // --- 1. Server Setup ---
 const app = express();
@@ -11,21 +14,19 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 // --- 2. API Route Definition ---
+
+// General citypulse endpoint
 app.post("/api/citypulse", async (req, res) => {
-  // Extract the prompt from the request body
   const { prompt, latitude, longitude } = req.body;
   console.log(`SERVER: Prompt: "${prompt}"`);
   console.log(`SERVER: Location: Latitude=${latitude}, Longitude=${longitude}`);
 
   if (!prompt && !latitude && !longitude) {
-    return res.status(400).json({ error: "The 'prompt' field is required in the request body." });
+    return res.status(400).json({ error: "The 'prompt', 'latitude', and 'longitude' fields are required." });
   }
 
   try {
-    // Call the agent function and wait for the result
     const agentResponse = await runMultiToolAgent(prompt, latitude, longitude);
-
-    // Send the agent's final answer back as a JSON response
     res.status(200).json({ response: agentResponse });
   } catch (error) {
     console.error("API Error:", error);
@@ -33,18 +34,33 @@ app.post("/api/citypulse", async (req, res) => {
   }
 });
 
+// Route planner endpoint
+app.post("/api/routePlanner", async (req, res) => {
+  const { startCoordinates, endCoordinates } = req.body;
+
+  if (!startCoordinates || !endCoordinates) {
+    return res.status(400).json({ error: "Both 'startCoordinates' and 'endCoordinates' are required in the request body." });
+  }
+
+  try {
+    const agentResponse = await runExpertPlanner({ startCoordinates, endCoordinates });
+    res.status(200).json({ response: agentResponse });
+  } catch (error) {
+    console.error("API Error:", error);
+    res.status(500).json({ error: "The route planner failed to process your request." });
+  }
+});
 
 // --- 3. Start the Server ---
-
 app.listen(port, () => {
   console.log(`CityPulse API server is running on http://localhost:${port}`);
-  console.log("Send a POST request to /api/citypulse to interact with the agent.");
+  console.log("➡️ Send a POST request to /api/citypulse or /api/routePlanner");
 });
 
-// Global error handlers for better debugging
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('UNHANDLED REJECTION:', reason);
+// Global error handlers
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("UNHANDLED REJECTION:", reason);
 });
-process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION:', err);
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
 });
