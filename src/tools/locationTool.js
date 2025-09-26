@@ -7,24 +7,16 @@ config();
 
 export const findNearbyPlaces = tool(
   async ({ latitude, longitude, keyword = "event", radius = 5000 }) => {
+    // This check happens AFTER the schema validation passes.
+    if (latitude === undefined || longitude === undefined) {
+      // This helpful error is sent back to the LLM, teaching it how to fix its mistake.
+      return "Error: Tool call failed because 'latitude' and 'longitude' are missing. You MUST provide both coordinates to use this tool.";
+    }
+
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       return "Error: Google Maps API key is missing.";
     }
-    if (
-      latitude === undefined || longitude === undefined ||
-      isNaN(Number(latitude)) || isNaN(Number(longitude))
-    ) {
-      return "Error: Both 'latitude' and 'longitude' must be valid numbers.";
-    }
-    if (keyword !== undefined && typeof keyword !== "string") {
-      return "Error: 'keyword' must be a string if provided.";
-    }
-    if (radius !== undefined && (isNaN(Number(radius)) || Number(radius) <= 0)) {
-      return "Error: 'radius' must be a positive number if provided.";
-    }
-
-    console.log(`Latitude ${latitude}, Longitude ${longitude}`);
 
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&keyword=${encodeURIComponent(keyword)}&key=${apiKey}`;
 
@@ -50,8 +42,9 @@ export const findNearbyPlaces = tool(
   },
   {
     name: "findNearbyPlaces",
-    description: "Finds points of interest (like events or parks) near a specific geographic coordinate. Both latitude and longitude are required parameters.",
+    description: "Finds points of interest (like events or parks) near a specific geographic coordinate.",
     schema: z.object({
+<<<<<<< Updated upstream
       keyword: z.string().optional().default("event").describe("A keyword to search for, e.g., 'event' or 'restaurant'."),
       latitude: z.union([z.string(), z.number()])
         .transform(val => Number(val))
@@ -60,6 +53,16 @@ export const findNearbyPlaces = tool(
         .transform(val => Number(val))
         .describe("The longitude of the central point."),
       radius: z.number().optional().default(5000).describe("The search radius in meters."),
+=======
+      latitude: z.union([z.string(), z.number()]).optional()
+        .transform(val => (val !== undefined ? Number(val) : undefined))
+        .describe("The latitude of the location to search around."),
+      longitude: z.union([z.string(), z.number()]).optional()
+        .transform(val => (val !== undefined ? Number(val) : undefined))
+        .describe("The longitude of the location to search around."),
+      keyword: z.string().optional().describe("A keyword to search for, e.g., 'concert'."),
+      radius: z.number().optional().describe("The search radius in meters."),
+>>>>>>> Stashed changes
     }),
   }
 );
