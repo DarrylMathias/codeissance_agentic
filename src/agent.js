@@ -141,14 +141,3 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
 //     .then((result) => console.log(result))
 //     .catch((err) => console.error("Error:", err.message));
 // }
-(async () => {
-  // Replace this with the actual prompt you want to test
-  const userPrompt = "plan a day out"; 
-  
-  // Call the function and await the result
-  await runMultiToolAgent(userPrompt);
-  
-  // You can also test a trip planning prompt
-  // const tripPrompt = "I need a plan for a family day out in Mumbai. We are in Bandra and want to find something fun to do.";
-  // await runMultiToolAgent(tripPrompt);
-})();

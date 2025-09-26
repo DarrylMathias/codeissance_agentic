@@ -1,7 +1,7 @@
 import { getRedditPosts } from "./redditTools.js";
 import { getCurrentWeather } from "./weatherTool.js";
 import { getTrafficConditions } from "./trafficTools.js";
-import { findNearbyPlacesTools } from "./locationTool.js";
+import { findNearbyPlaces } from "./locationTool.js";
 // import { getTwitterAlerts } from "./twitter.js";
 
 // This array contains every tool the agent has access to.
@@ -10,6 +10,6 @@ export const allTools = [
   getRedditPosts,
   getCurrentWeather,
   getTrafficConditions,
-  findNearbyPlacesTools,
+  findNearbyPlaces,
   // getTwitterAlerts
 ];

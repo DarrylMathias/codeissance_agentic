@@ -5,7 +5,7 @@ import axios from "axios";
 import { config } from "dotenv";
 config();
 
-export const findNearbyPlacesTools = tool(
+export const findNearbyPlaces = tool(
   async ({ latitude, longitude, keyword = "event", radius = 5000 }) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
@@ -52,10 +52,14 @@ export const findNearbyPlacesTools = tool(
     name: "findNearbyPlaces",
     description: "Finds points of interest (like events or parks) near a specific geographic coordinate. Both latitude and longitude are required parameters.",
     schema: z.object({
-      keyword: z.string().describe("A keyword to search for, e.g., 'event' or 'restaurant'."),
-      latitude: z.number().describe("The latitude of the central point."),
-      longitude: z.number().describe("The longitude of the central point."),
-      radius: z.number().describe("The search radius in meters."),
+      keyword: z.string().optional().default("event").describe("A keyword to search for, e.g., 'event' or 'restaurant'."),
+      latitude: z.union([z.string(), z.number()])
+        .transform(val => Number(val))
+        .describe("The latitude of the central point."),
+      longitude: z.union([z.string(), z.number()])
+        .transform(val => Number(val))
+        .describe("The longitude of the central point."),
+      radius: z.number().optional().default(5000).describe("The search radius in meters."),
     }),
   }
 );

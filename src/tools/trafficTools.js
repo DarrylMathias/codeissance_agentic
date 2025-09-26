@@ -7,17 +7,20 @@ config();
 
 export const getTrafficConditions = tool(
   async (input) => {
-    // Defensive: detect if input is for the wrong tool
-    if (
-      input &&
-      (Object.prototype.hasOwnProperty.call(input, 'latitude') ||
-        Object.prototype.hasOwnProperty.call(input, 'longitude') ||
-        Object.prototype.hasOwnProperty.call(input, 'keyword') ||
-        Object.prototype.hasOwnProperty.call(input, 'radius'))
+    // Accept both origin/destination as strings and startLat/startLng/endLat/endLng as numbers/strings
+    let origin, destination;
+    if (input.origin && input.destination) {
+      origin = input.origin;
+      destination = input.destination;
+    } else if (
+      (input.startLat !== undefined && input.startLng !== undefined &&
+        input.endLat !== undefined && input.endLng !== undefined)
     ) {
-      return "Error: Received input with 'latitude', 'longitude', or 'keyword'. This tool requires { origin, destination } as non-empty strings in the format 'latitude,longitude'. You may be calling the wrong tool.";
+      origin = `${input.startLat},${input.startLng}`;
+      destination = `${input.endLat},${input.endLng}`;
+    } else {
+      return "Error: Provide either {origin, destination} as strings or {startLat, startLng, endLat, endLng} as numbers.";
     }
-    const { origin, destination } = input;
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       return "Error: Google Maps API key is missing. Please set GOOGLE_MAPS_API_KEY in your .env file.";
@@ -55,10 +58,12 @@ export const getTrafficConditions = tool(
     name: "getTrafficConditions",
     description: "Calculates the real-time travel time and traffic delay between two specific points in Mumbai using Google Maps. Use this to answer any questions about traffic.",
     schema: z.object({
-      startLat: z.number().describe("The latitude of the starting point."),
-      startLng: z.number().describe("The longitude of the starting point."),
-      endLat: z.number().describe("The latitude of the ending point."),
-      endLng: z.number().describe("The longitude of the ending point."),
+      origin: z.string().optional().describe("The starting point as 'lat,lng' string."),
+      destination: z.string().optional().describe("The ending point as 'lat,lng' string."),
+      startLat: z.union([z.string(), z.number()]).optional().describe("The latitude of the starting point."),
+      startLng: z.union([z.string(), z.number()]).optional().describe("The longitude of the starting point."),
+      endLat: z.union([z.string(), z.number()]).optional().describe("The latitude of the ending point."),
+      endLng: z.union([z.string(), z.number()]).optional().describe("The longitude of the ending point."),
     }),
   }
 );
