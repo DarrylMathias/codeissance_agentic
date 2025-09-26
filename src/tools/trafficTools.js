@@ -33,6 +33,7 @@ export const getTrafficConditions = tool(
 
     try {
       console.log(`TOOL (Traffic): Getting live traffic from '${origin}' to '${destination}'...`);
+      console.log(`TOOL (Traffic): Fetching URL: ${url}`);
       const response = await axios.get(url);
       const route = response.data.routes[0];
 
@@ -51,7 +52,8 @@ export const getTrafficConditions = tool(
 
       return JSON.stringify(trafficInfo, null, 2);
     } catch (error) {
-      return `Error: Failed to fetch traffic data. Details: ${error.message}`;
+      console.error("TOOL (Traffic) fetch failed:", error);
+      return `Error: Failed to fetch traffic data. URL: ${url} Details: ${error.message}`;
     }
   },
   {

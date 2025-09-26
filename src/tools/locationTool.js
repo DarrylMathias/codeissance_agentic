@@ -22,6 +22,7 @@ export const findNearbyPlaces = tool(
 
     try {
       console.log(`TOOL (Places): Searching for '${keyword}' near ${latitude},${longitude}`);
+      console.log(`TOOL (Places): Fetching URL: ${url}`);
       const response = await axios.get(url);
       const places = response.data.results;
 
@@ -37,7 +38,8 @@ export const findNearbyPlaces = tool(
 
       return JSON.stringify(simplifiedPlaces, null, 2);
     } catch (error) {
-      return `Error: Failed to fetch places data. Details: ${error.message}`;
+      console.error("TOOL (Places) fetch failed:", error);
+      return `Error: Failed to fetch places data. URL: ${url} Details: ${error.message}`;
     }
   },
   {

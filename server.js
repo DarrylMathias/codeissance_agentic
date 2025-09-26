@@ -54,7 +54,16 @@ app.post("/api/routePlanner", async (req, res) => {
 });
 
 // --- 3. Start the Server ---
+
 app.listen(port, () => {
   console.log(`CityPulse API server is running on http://localhost:${port}`);
   console.log("Send a POST request to /api/citypulse to interact with the agent.");
+});
+
+// Global error handlers for better debugging
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
 });
