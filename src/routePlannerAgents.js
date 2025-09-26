@@ -1,6 +1,6 @@
 // agents/expertRoutePlannerAgent.js
-import { Ollama } from "@langchain/ollama";
-import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
+import { ChatOllama } from "@langchain/ollama";
+import { createToolCallingAgent, AgentExecutor } from "langchain/agents";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { config } from "dotenv";
 
@@ -19,7 +19,6 @@ const plannerTools = [getTrafficConditions, findNearbyPlaces];
  * @param {object} endCoordinates - The ending coordinates { lat, lng }.
  * @returns {Promise<string>} The agent's final analysis.
  */
-
 async function runExpertPlanner({ startCoordinates, endCoordinates }) {
   if (!process.env.GOOGLE_MAPS_API_KEY) {
     throw new Error("Missing Google Maps API key.");
@@ -28,7 +27,7 @@ async function runExpertPlanner({ startCoordinates, endCoordinates }) {
   console.log("🚀 Initializing Expert Route Planner Agent...");
 
   // --- Agent Setup ---
-  const model = new Ollama({
+  const model = new ChatOllama({
     baseUrl: process.env.OLLAMA_BASE_URL,
     model: process.env.OLLAMA_MODEL || "llama3.1",
   });
@@ -39,11 +38,11 @@ async function runExpertPlanner({ startCoordinates, endCoordinates }) {
     ["placeholder", "{agent_scratchpad}"],
   ]);
 
-  const agent = await createOpenAIFunctionsAgent({ llm: model, tools: plannerTools, prompt });
+  const agent = await createToolCallingAgent({ llm: model, tools: plannerTools, prompt });
+  
   const agentExecutor = new AgentExecutor({ agent, tools: plannerTools });
 
   // --- Execution ---
-  // Create a dynamic prompt for the agent based on the input coordinates
   const dynamicInput = `Provide a full analysis for the route starting at coordinates ${startCoordinates.lat},${startCoordinates.lng} and ending at ${endCoordinates.lat},${endCoordinates.lng}.
   1. First, check the current traffic conditions for the entire route.
   2. Next, find any interesting events or points of interest near the START location.
