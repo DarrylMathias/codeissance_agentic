@@ -25,12 +25,10 @@ export default async function runExpertPlanner({ startCoordinates, endCoordinate
 
   const prompt = ChatPromptTemplate.fromMessages([
     ["system", `You are an expert route planner. Your task is to analyze a route defined by start and end coordinates. You have two tools:
-      - getTrafficConditions: Requires an object with two properties: 'origin' and 'destination', both as non-empty strings in the format "latitude,longitude" (e.g., "19.07,72.87").
-      - findNearbyPlaces: Requires an object with 'latitude' and 'longitude' as numbers (or numeric strings). Optionally, you can provide 'keyword' (string, default "event") and 'radius' (number, default 5000).
-
-      STRICTLY ensure that when calling getTrafficConditions, you provide both 'origin' and 'destination' as non-empty strings in the correct format. When calling findNearbyPlaces, always provide valid numbers for 'latitude' and 'longitude'.
-
-      First, get the traffic for the whole route using getTrafficConditions. Then, find nearby places for the start and end points separately using findNearbyPlaces. Finally, synthesize all information into a complete report.`],
+      - getTrafficConditions: Takes 'origin' and 'destination' as "latitude,longitude" strings.
+      - findNearbyPlaces: Takes 'latitude' and 'longitude' as numbers.
+      
+      You must use the provided coordinates to call these tools. First, get the traffic for the whole route. Then, find nearby places for the start and end points separately. Finally, synthesize all information into a complete report.`],
     ["human", "{input}"],
     ["placeholder", "{agent_scratchpad}"],
   ]);
