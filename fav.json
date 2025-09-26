@@ -1,0 +1,44 @@
+{
+  "topFivePreferences": [
+    {
+      "id": "cafes_and_bistros",
+      "name": "Cafes & Bistros",
+      "type": "cafe",
+      "keywords": ["cafe", "bistro", "coffee shop", "dessert place", "cozy spot"],
+      "radius": 2000
+    },
+    {
+      "id": "parks_and_nature",
+      "name": "Parks & Nature",
+      "type": "park",
+      "keywords": ["park", "garden", "nature walk", "green space", "recreation area"],
+      "radius": 4000
+    },
+    {
+      "id": "entertainment",
+      "name": "Entertainment",
+      "type": "movie_theater",
+      "keywords": ["cinema", "movie theater", "arcade", "bowling", "live shows"],
+      "radius": 5000
+    },
+    {
+      "id": "shopping_and_malls",
+      "name": "Shopping & Malls",
+      "type": "shopping_mall",
+      "keywords": ["mall", "shopping center", "boutique", "market", "arcade"],
+      "radius": 3000
+    },
+    {
+      "id": "sports_and_fitness",
+      "name": "Sports & Fitness",
+      "type": "gym",
+      "keywords": ["gym", "fitness center", "yoga studio", "swimming pool", "sports complex"],
+      "radius": 3500
+    }
+  ],
+  "settings": {
+    "maxResultsPerType": 10,
+    "defaultRadius": 5000,
+    "units": "meters"
+  }
+}
