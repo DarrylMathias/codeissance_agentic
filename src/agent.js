@@ -17,34 +17,62 @@ const toolMap = Object.fromEntries(allTools.map((tool) => [tool.name, tool]));
 
 // --- 2. Main Agent Logic ---
 export default async function runMultiToolAgent(prompt, latitude, longitude) {
-  const fullPrompt = latitude && longitude
-    ? `${prompt}\n\n(Context: The user's current location is latitude: ${latitude}, longitude: ${longitude})`
-    : prompt;
+  let fullPrompt = prompt;
+  let toolCallOverride = null;
+
+  if (latitude && longitude) {
+    fullPrompt = `${prompt}\n\n(Context: The user's current location is latitude: ${latitude}, longitude: ${longitude})`;
+    
+    // If the prompt is about places near the user, force a tool call with the correct args
+    if (/places? near me|nearby places|good places/i.test(prompt)) {
+      toolCallOverride = {
+        toolName: "findNearbyPlaces",
+        args: { latitude: Number(latitude), longitude: Number(longitude) }
+      };
+    }
+  }
+
+  console.log("AGENT: Full prompt being sent to LLM:");
   console.log(fullPrompt);
+
   const messages = [
     new SystemMessage(
-      `You are CityPulse, a hyper-local, real-time AI city guide for Mumbai. Your goal is to act as a personal city concierge.
+      `YYou are CityPulse, a hyper-local, real-time AI city guide for Mumbai. Your goal is to act as a personal city concierge. Current date and time: 12:48 AM IST, September 27, 2025.
 
       ### Your Tools:
       - getCurrentWeather: For live weather conditions.
       - getRedditPosts: For local news, events, and public sentiment.
       - getTrafficConditions: For real-time traffic and travel times between two points.
-
+      - findNearbyPlaces: For finding points of interest near a latitude/longitude.
+      - findRouteAttractionTool: **Must be used when the user expresses interest in planning an outing, a day out, a day trip, going out, or looking for nearby attractions.** This tool provides both attraction discovery and travel route information.
+      
       ### Your Core Task:
-      1.  Autonomously analyze the user's request.
-      2.  Determine which tools are necessary to gather all required information.
-      3.  Execute the tool calls.
-      4.  Synthesize the data from all tools into a single, comprehensive response.
-      5.  Strictly follow the response format below.
-
+      1. Analyze the user’s request and determine intent.
+      2. If the intent is related to trip planning, outings, or day planning, **immediately call the findRouteAttractionTool first** to identify a relevant attraction and get routing info.
+      3. After identifying the attraction, enrich the plan by:
+         - Checking live weather (to suggest the best time to leave or what to carry).
+         - Optionally pulling local buzz (events, sentiment, crowds) via Reddit posts.
+      4. Synthesize the collected data into a **comprehensive and detailed day plan**, including:
+         - The main attraction (with a short intro about what it offers).
+         - Travel details (expected travel time, traffic considerations).
+         - What activities can be done there.
+         - How much time to allocate.
+         - Whether it is suitable for families, kids, or groups.
+         - Suggestions for food, nearby spots, or evening wrap-up.
+         - Pro tips (best time to go, avoid rush hours, etc.).
+      
       ### RESPONSE FORMAT:
       You MUST structure your final response in two distinct parts.
-    
-      **Part 1: The Answer**
-      Begin with a direct, user-friendly, and comprehensive answer to the user's question. Synthesize the information from your tools into a natural, easy-to-read summary. DO NOT mention the tools or data sources in this part.
-
-      **Part 2: Data Sources and Reasoning**
-      After the answer, add a horizontal separator ('---'). Then, add the heading "Data Sources and Reasoning". Under this heading, you must provide a detailed, point-by-point breakdown of which tools you used and the key data you extracted from each one. This section is for transparency and must only appear at the very end of your response.`
+      
+      **Part 1: The Answer**  
+      Provide a **rich, user-friendly itinerary-style answer**. For outing requests, this should read like a mini travel guide: what to expect, how long the trip might take, things to do, family suitability, and bonus recommendations. Make it engaging and easy to follow.
+      
+      **Part 2: Data Sources and Reasoning**  
+      After the answer, add a horizontal separator ('---'). Then, add the heading "Data Sources and Reasoning". Under this heading, provide a detailed, point-by-point breakdown:
+      - Which tools you used and key data extracted.
+      - Key insights from each tool.
+      - How you synthesized the final itinerary.
+      This section is for transparency and must only appear at the very end.`
     ),
     new HumanMessage(fullPrompt),
   ];
@@ -65,9 +93,17 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
       for (const toolCall of response.tool_calls) {
         console.log(`AGENT: Executing tool -> ${toolCall.name}`);
         const tool = toolMap[toolCall.name];
-        // Pass the arguments from the LLM to the tool
-        const toolOutput = await tool.invoke(toolCall.args);
-        messages.push(new ToolMessage({ content: toolOutput, tool_call_id: toolCall.id }));
+        if (!tool) {
+          throw new Error(`Tool ${toolCall.name} not found in toolMap. Available tools: ${Object.keys(toolMap).join(', ')}`);
+        }
+        // Pass the prompt to tools for route-specific filtering
+        const toolOutput = await tool.invoke({
+          ...toolCall.args,
+          prompt: fullPrompt,
+        });
+        messages.push(
+          new ToolMessage({ content: toolOutput, tool_call_id: toolCall.id })
+        );
       }
 
       console.log("AGENT: Feeding tool results back to LLM...");
@@ -83,18 +119,13 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
 
 }
 
-// // --- 3. CLI Support in ESM ---
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
-
-// if (process.argv[1] === __filename) {
-//   const prompt =
-//     process.argv[2] || "What's the best way to travel from Bandra to Thane today?";
-//   const latitude = process.argv[3] ? parseFloat(process.argv[3]) : null;
-//   const longitude = process.argv[4] ? parseFloat(process.argv[4]) : null;
-
-//   runMultiToolAgent(prompt, latitude, longitude)
-//     .then((result) => console.log(result))
-//     .catch((err) => console.error("Error:", err.message));
-// }
-
+// --- 3. Main Execution Block ---
+(async () => {
+  const prompt = "I want to have a good time today";
+  // Hardcoded coordinates for Bandra West, Mumbai (Latitude: 19.0594, Longitude: 72.8259)
+  const latitude = 19.0594;
+  const longitude = 72.8259;
+  console.log(`\n--- Running example with prompt: "${prompt}" ---\n`);
+  const result = await runMultiToolAgent(prompt, latitude, longitude);
+  console.log("FINAL RESULT:", result);
+})();

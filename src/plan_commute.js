@@ -80,8 +80,6 @@ async function runCommuteAgent() {
 
   const staticInput = `Analyze the predefined commute options for Andheri East to Nariman Point for next Saturday at 9:00 AM.`;
 
-  console.log(`Analyzing hardcoded commute route...`);
-
   console.log("------------------------------------------");
 
   const result = await agentExecutor.invoke({ input: staticInput });
