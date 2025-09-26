@@ -6,10 +6,24 @@ import { config } from "dotenv";
 config();
 
 export const getTrafficConditions = tool(
-  async ({ origin, destination }) => {
+  async (input) => {
+    // Defensive: detect if input is for the wrong tool
+    if (
+      input &&
+      (Object.prototype.hasOwnProperty.call(input, 'latitude') ||
+        Object.prototype.hasOwnProperty.call(input, 'longitude') ||
+        Object.prototype.hasOwnProperty.call(input, 'keyword') ||
+        Object.prototype.hasOwnProperty.call(input, 'radius'))
+    ) {
+      return "Error: Received input with 'latitude', 'longitude', or 'keyword'. This tool requires { origin, destination } as non-empty strings in the format 'latitude,longitude'. You may be calling the wrong tool.";
+    }
+    const { origin, destination } = input;
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       return "Error: Google Maps API key is missing. Please set GOOGLE_MAPS_API_KEY in your .env file.";
+    }
+    if (!origin || !destination || typeof origin !== "string" || typeof destination !== "string" || origin.trim() === "" || destination.trim() === "") {
+      return "Error: Both 'origin' and 'destination' must be non-empty strings in the format 'latitude,longitude'.";
     }
 
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&key=${apiKey}&departure_time=now`;

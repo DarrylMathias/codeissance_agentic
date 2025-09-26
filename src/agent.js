@@ -19,16 +19,21 @@ const toolMap = Object.fromEntries(allTools.map((tool) => [tool.name, tool]));
 
 // --- 2. Main Agent Logic ---
 export default async function runMultiToolAgent(prompt, latitude, longitude) {
-  const fullPrompt =
-    latitude && longitude
-      ? `${prompt}\n\n(Context: The user's current location is latitude: ${latitude}, longitude: ${longitude})`
-      : prompt;
-
-  console.log(
-    "AGENT: Starting with user prompt at 10:10 PM IST, September 26, 2025..."
-  );
-  console.log(fullPrompt.substring(0, 200) + "...");
-
+  console.log("AGENT: Full prompt being sent to LLM:");
+  let fullPrompt = prompt;
+  let toolCallOverride = null;
+  if (latitude && longitude) {
+    fullPrompt = `${prompt}\n\n(Context: The user's current location is latitude: ${latitude}, longitude: ${longitude})`;
+    // If the prompt is about places near the user, force a tool call with the correct args
+    if (/places? near me|nearby places|good places/i.test(prompt)) {
+      toolCallOverride = {
+        toolName: "findNearbyPlaces",
+        args: { latitude: Number(latitude), longitude: Number(longitude) }
+      };
+    }
+  }
+  console.log("AGENT: Full prompt being sent to LLM:");
+  console.log(fullPrompt);
   const messages = [
     new SystemMessage(
       `You are CityPulse, a hyper-local, real-time AI city guide for Mumbai. Your goal is to act as a personal city concierge. Current date and time: 10:10 PM IST, September 26, 2025.
@@ -37,8 +42,7 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
       - getCurrentWeather: For live weather conditions.
       - getRedditPosts: For local news, events, and public sentiment.
       - getTrafficConditions: For real-time traffic and travel times between two points.
-      - findNearbyPlaces: For finding nearby locations based on user preferences.
-      - getTwitterAlerts: For real-time weather and traffic alerts from official Mumbai Twitter accounts.
+      - findNearbyPlaces: For finding points of interest near a latitude/longitude.
 
       ### Your Core Task:
       1. Analyze the user's request and determine which tools are necessary.
@@ -70,7 +74,26 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
       throw new Error("A prompt must be provided.");
     }
 
-    let response = await llmWithTools.invoke(messages);
+    let response;
+    if (toolCallOverride) {
+      // Directly call the tool with the correct arguments
+      console.log(`AGENT: Forcing tool call: ${toolCallOverride.toolName} with`, toolCallOverride.args);
+      const toolFn = toolMap[toolCallOverride.toolName];
+      if (!toolFn) throw new Error(`Tool ${toolCallOverride.toolName} not found.`);
+      let toolResult;
+      if (typeof toolFn.invoke === 'function') {
+        toolResult = await toolFn.invoke(toolCallOverride.args);
+      } else if (typeof toolFn.call === 'function') {
+        toolResult = await toolFn.call(toolCallOverride.args);
+      } else if (typeof toolFn === 'function') {
+        toolResult = await toolFn(toolCallOverride.args);
+      } else {
+        throw new Error(`Tool ${toolCallOverride.toolName} is not callable.`);
+      }
+      response = { content: toolResult };
+    } else {
+      response = await llmWithTools.invoke(messages);
+    }
 
     while (response.tool_calls && response.tool_calls.length > 0) {
       console.log(
