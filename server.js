@@ -4,6 +4,7 @@ config();
 import express from "express";
 import runMultiToolAgent from "./src/agent.js";
 import runExpertPlanner from "./src/routePlannerAgents.js";
+import cors from 'cors';
 
 
 // --- 1. Server Setup ---
@@ -12,7 +13,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
-
+app.use(cors());
 // --- 2. API Route Definition ---
 
 // General citypulse endpoint
