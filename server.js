@@ -33,25 +33,6 @@ app.post("/api/citypulse", async (req, res) => {
   }
 });
 
-app.post("/api/routePlanner", async (req, res) => {
-  // Extract the prompt from the request body
-  const { startCoordinates, endCoordinates } = req.body;
-
-  if (!startCoordinates && !endCoordinates) {
-    return res.status(400).json({ error: "The 'coords' field is required in the request body." });
-  }
-
-  try {
-    // Call the agent function and wait for the result
-    const agentResponse = await runExpertPlanner({ startCoordinates, endCoordinates });
-
-    // Send the agent's final answer back as a JSON response
-    res.status(200).json({ response: agentResponse });
-  } catch (error) {
-    console.error("API Error:", error);
-    res.status(500).json({ error: "The agent failed to process your request." });
-  }
-});
 
 // --- 3. Start the Server ---
 

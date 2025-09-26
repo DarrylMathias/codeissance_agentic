@@ -118,14 +118,3 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
   }
 
 }
-
-// --- 3. Main Execution Block ---
-(async () => {
-  const prompt = "I want to have a good time today";
-  // Hardcoded coordinates for Bandra West, Mumbai (Latitude: 19.0594, Longitude: 72.8259)
-  const latitude = 19.0594;
-  const longitude = 72.8259;
-  console.log(`\n--- Running example with prompt: "${prompt}" ---\n`);
-  const result = await runMultiToolAgent(prompt, latitude, longitude);
-  console.log("FINAL RESULT:", result);
-})();
