@@ -39,10 +39,10 @@ export const findNearbyPlaces = tool(
     name: "findNearbyPlaces",
     description: "Finds points of interest (like events, restaurants, or parks) near a specific geographic coordinate (latitude and longitude).",
     schema: z.object({
-      latitude: z.number().describe("The latitude of the location to search around."),
-      longitude: z.number().describe("The longitude of the location to search around."),
-      keyword: z.string().optional().describe("A keyword to search for, e.g., 'concert', 'festival', 'park'. Defaults to 'event'."),
-      radius: z.number().optional().describe("The search radius in meters. Defaults to 5000."),
+      keyword: z.string().describe("A keyword to search for, e.g., 'event' or 'restaurant'."),
+      latitude: z.number().describe("The latitude of the central point."),
+      longitude: z.number().describe("The longitude of the central point."),
+      radius: z.number().describe("The search radius in meters."),
     }),
   }
 );
