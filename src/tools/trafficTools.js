@@ -55,8 +55,10 @@ export const getTrafficConditions = tool(
     name: "getTrafficConditions",
     description: "Calculates the real-time travel time and traffic delay between two specific points in Mumbai using Google Maps. Use this to answer any questions about traffic.",
     schema: z.object({
-      origin: z.string().describe("The starting point, e.g., 'Chhatrapati Shivaji Maharaj International Airport'"),
-      destination: z.string().describe("The ending point, e.g., 'Gateway of India'"),
+      startLat: z.number().describe("The latitude of the starting point."),
+      startLng: z.number().describe("The longitude of the starting point."),
+      endLat: z.number().describe("The latitude of the ending point."),
+      endLng: z.number().describe("The longitude of the ending point."),
     }),
   }
 );
