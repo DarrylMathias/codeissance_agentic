@@ -5,7 +5,7 @@ import axios from "axios";
 import { config } from "dotenv";
 config();
 
-export const findNearbyPlaces = tool(
+export const findNearbyPlacesTools = tool(
   async ({ latitude, longitude, keyword = "event", radius = 5000 }) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
