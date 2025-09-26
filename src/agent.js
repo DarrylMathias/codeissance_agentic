@@ -127,20 +127,20 @@ export default async function runMultiToolAgent(prompt, latitude, longitude) {
   }
 }
 
-// --- 3. CLI Support in ESM ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// // --- 3. CLI Support in ESM ---
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
-if (process.argv[1] === __filename) {
-  const prompt =
-    process.argv[2] || "What's the best way to travel from Bandra to Thane today?";
-  const latitude = process.argv[3] ? parseFloat(process.argv[3]) : null;
-  const longitude = process.argv[4] ? parseFloat(process.argv[4]) : null;
+// if (process.argv[1] === __filename) {
+//   const prompt =
+//     process.argv[2] || "What's the best way to travel from Bandra to Thane today?";
+//   const latitude = process.argv[3] ? parseFloat(process.argv[3]) : null;
+//   const longitude = process.argv[4] ? parseFloat(process.argv[4]) : null;
 
-  runMultiToolAgent(prompt, latitude, longitude)
-    .then((result) => console.log(result))
-    .catch((err) => console.error("Error:", err.message));
-}
+//   runMultiToolAgent(prompt, latitude, longitude)
+//     .then((result) => console.log(result))
+//     .catch((err) => console.error("Error:", err.message));
+// }
 (async () => {
   // Replace this with the actual prompt you want to test
   const userPrompt = "plan a day out"; 
