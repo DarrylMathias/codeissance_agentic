@@ -1,0 +1,30 @@
+{
+    "user_profile": {
+      "name": "Rahul",
+      "home_location": {
+        "lat": 19.1136,
+        "lon": 72.8697,
+        "address": "Andheri East, Mumbai"
+      },
+      "office_location": {
+        "lat": 18.9245,
+        "lon": 72.8223,
+        "address": "Nariman Point, Mumbai"
+      },
+      "commute": {
+        "work_start_time": "09:00",
+        "preferred_transport": ["metro", "uber", "bus"],
+        "avoid": ["traffic_jams", "late-night trains"]
+      },
+      "preferences": {
+        "food": "vegetarian",
+        "interests": ["live music", "street food", "art festivals"],
+        "safety_preference": "avoid_deserted_areas_at_night"
+      },
+      "notifications": {
+        "weather_alerts": true,
+        "traffic_alerts": true,
+        "event_recommendations": true
+      }
+    }
+  }
