@@ -150,25 +150,39 @@ When a user asks you to plan a trip, a tour, or their day, you **MUST** follow t
       messages.push(response);
 
       for (const toolCall of response.tool_calls) {
-        const toolName = toolCall.name || "(missing)";
-        console.log(`AGENT: Executing tool -> ${toolName}`);
+        // Validate tool name, fallback to default tool if missing/invalid
+        let toolName = toolCall.name;
+        let tool = toolMap[toolName];
+        if (!toolName || typeof toolName !== "string" || !toolName.trim() || !tool) {
+          // Fallback: use findNearbyPlaces if available
+          toolName = "findNearbyPlaces";
+          tool = toolMap[toolName];
+          console.warn(`⚠️ Tool call with missing/invalid name. Fallback to ${toolName}.`);
+        }
 
-        const tool = toolMap[toolCall.name];
         if (!tool) {
-          console.warn(
-            `⚠️ Tool "${toolCall.name}" not found. Available tools: ${Object.keys(toolMap).join(', ')}`
-          );
+          // If fallback also fails, just skip
           messages.push(
             new ToolMessage({
-              content: `Error: Requested tool "${toolCall.name}" is not available.`,
+              content: `Error: No valid tool available to answer your request.`,
               tool_call_id: toolCall.id
             })
           );
-          continue; // skip invalid tool
+          continue;
         }
 
+        // Use available args or fallback to origin/destination if possible
+        let args = toolCall.args || {};
+        if (toolName === "findNearbyPlaces") {
+          // Use origin if available, else destination
+          const lat = hasOrigin ? Number(startLat) : Number(endLat);
+          const long = hasOrigin ? Number(startLong) : Number(endLang);
+          args = { latitude: lat, longitude: long };
+        }
+
+        console.log(`AGENT: Executing tool -> ${toolName}`);
         const toolOutput = await tool.invoke({
-          ...toolCall.args,
+          ...args,
           prompt: fullPrompt,
         });
         messages.push(
